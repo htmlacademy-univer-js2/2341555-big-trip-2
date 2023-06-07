@@ -1,6 +1,6 @@
-import { createElement } from '../render.js';
 import { DESTINATIONS } from '../mock/const';
 import { OFFERS, OFFERS_BY_TYPE } from '../mock/offers.js';
+import AbstractView from '../framework/view/abstract-view';
 
 const createDestionationsOptionsTemplate = (destinations) =>
   destinations.reduce((result, destination) =>
@@ -121,24 +121,35 @@ const createEditFormTemplate = (event) => {
             </form>`;
 };
 
-export default class EditFormView {
+export default class EditFormView extends AbstractView {
+  #event;
+
   constructor(event) {
-    this._element = null;
-    this._event = event;
+    super();
+    this.#event = event;
   }
 
   get template() {
-    return createEditFormTemplate(this._event);
+    return createEditFormTemplate(this.#event);
   }
 
-  get element() {
-    if (!this._element) {
-      this._element = createElement(this.template);
-    }
-    return this._element;
+  setRollDownHandler = (callback) => {
+    this._callback.rollDown = callback;
+    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#rollDownHandler);
   }
 
-  removeElement() {
-    this._element = null;
+  #rollDownHandler = (e) => {
+    e.preventDefault();
+    this._callback.rollDown();
+  }
+
+  setSaveHandler = (callback) => {
+    this._callback.save = callback;
+    this.element.querySelector('.event__save-btn').addEventListener('click', this.#saveHandler);
+  }
+
+  #saveHandler = (e) => {
+    e.preventDefault();
+    this._callback.save();
   }
 }

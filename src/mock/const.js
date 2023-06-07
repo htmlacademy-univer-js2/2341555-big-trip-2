@@ -1,5 +1,11 @@
-const MIN_PRICE = 100;
-const MAX_PRICE = 600;
+const TIME = {
+  MINUTES: 60,
+  HOURS: 24
+};
+const PRICE = {
+  MIN: 100,
+  MAX: 600
+};
 const TYPES = ['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-in', 'sightseeing', 'restaurant'];
 const OFFER_TITLES = ['Upgrade to a business class', 'Switch to comfort', 'Rent a car', 'Add breakfast', 'Order taxi', 'Add luggage'];
 const DESTINATIONS = [
@@ -39,8 +45,8 @@ const DESTINATIONS = [
 ];
 
 export {
-  MIN_PRICE,
-  MAX_PRICE,
+  TIME,
+  PRICE,
   TYPES,
   OFFER_TITLES,
   DESTINATIONS
