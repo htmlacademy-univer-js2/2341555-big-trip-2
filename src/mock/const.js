@@ -44,10 +44,17 @@ const DESTINATIONS = [
   }
 ];
 
+const FILTER_TYPES = {
+  EVERYTHING: 'everything',
+  FUTURE: 'future',
+  PAST: 'past'
+};
+
 export {
   TIME,
   PRICE,
   TYPES,
   OFFER_TITLES,
-  DESTINATIONS
+  DESTINATIONS,
+  FILTER_TYPES
 };

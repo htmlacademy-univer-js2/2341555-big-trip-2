@@ -5,21 +5,23 @@ import { render, RenderPosition } from './framework/render';
 import TripInfoView from './view/trip-info-view';
 import RootPresenter from './presenter/root-presenter';
 import AddFormView from './view/add-form-view';
+import { generateFilter } from './mock/filter';
 
 const headerElement = document.querySelector('.page-header');
 const mainElement = document.querySelector('.page-main');
 
 const tripMainElement = document.querySelector('.trip-main');
-const navigation = headerElement.querySelector('.trip-controls__navigation');
-const filters = headerElement.querySelector('.trip-controls__filters');
-const content = mainElement.querySelector('.trip-events');
+const navigationElement = headerElement.querySelector('.trip-controls__navigation');
+const filtersElement = headerElement.querySelector('.trip-controls__filters');
+const contentElement = mainElement.querySelector('.trip-events');
 tripMainElement.querySelector('.trip-main__event-add-btn')
-  .addEventListener('click', () => render(new AddFormView(), content, RenderPosition.AFTERBEGIN));
+  .addEventListener('click', () => render(new AddFormView(), contentElement, RenderPosition.AFTERBEGIN));
 
 const routePresenter = new RootPresenter();
 const eventsModel = new EventsModel();
+const filters = generateFilter(eventsModel.events);
 
-render(new MenuView(), navigation);
+render(new MenuView(), navigationElement);
 render(new TripInfoView(), tripMainElement, RenderPosition.AFTERBEGIN);
-render(new FilterView(), filters);
-routePresenter.init(content, eventsModel);
+render(new FilterView(filters), filtersElement);
+routePresenter.init(contentElement, eventsModel);
