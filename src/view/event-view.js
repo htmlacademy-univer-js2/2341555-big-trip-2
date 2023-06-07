@@ -1,7 +1,7 @@
-import { createElement } from '../render.js';
 import { convertEventDateIntoDay, convertEventDateIntoHour, subtractDates, checkFavoriteOption, capitalizeFirstLetter } from '../utils.js';
 import { DESTINATIONS } from '../mock/const';
 import { OFFERS } from '../mock/offers.js';
+import AbstractView from '../framework/view/abstract-view';
 
 const createOfferTemplate = (offers) =>
   offers.reduce((result, offer) => {
@@ -59,24 +59,25 @@ const createEventTemplate = (event) => {
   </li>`;
 };
 
-export default class EventView {
+export default class EventView extends AbstractView {
+  #event;
+
   constructor(event) {
-    this._element = null;
-    this._event = event;
+    super();
+    this.#event = event;
   }
 
   get template() {
-    return createEventTemplate(this._event);
+    return createEventTemplate(this.#event);
   }
 
-  get element() {
-    if (!this._element) {
-      this._element = createElement(this.template);
-    }
-    return this._element;
+  setRollUpHandler = (callback) => {
+    this._callback.rollUp = callback;
+    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#rollUpHandler);
   }
 
-  removeElement() {
-    this._element = null;
+  #rollUpHandler = (e) => {
+    e.preventDefault();
+    this._callback.rollUp();
   }
 }

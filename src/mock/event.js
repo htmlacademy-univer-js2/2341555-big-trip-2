@@ -1,5 +1,5 @@
 import { getRandomInteger, generateDates } from '../utils';
-import { TYPES, DESTINATIONS, MIN_PRICE, MAX_PRICE } from './const';
+import { TYPES, DESTINATIONS, PRICE } from './const';
 import { OFFERS } from './offers';
 
 const generateType = () => TYPES[getRandomInteger(0, TYPES.length - 1)];
@@ -7,7 +7,7 @@ const generateType = () => TYPES[getRandomInteger(0, TYPES.length - 1)];
 const generateEvent = () => {
   const { startDate, endDate } = generateDates();
   return {
-    basePrice: getRandomInteger(MIN_PRICE, MAX_PRICE),
+    basePrice: getRandomInteger(PRICE.MIN, PRICE.MAX),
     startDate,
     endDate,
     destination: getRandomInteger(1, DESTINATIONS.length),
