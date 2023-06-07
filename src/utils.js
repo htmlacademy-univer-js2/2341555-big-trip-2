@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
-import { TIME } from './mock/const';
+import { FILTER_TYPES, TIME } from './mock/const';
 
 dayjs.extend(duration);
 
@@ -11,9 +11,9 @@ const getRandomInteger = (a = 0, b = 1) => {
   return Math.floor(lower + Math.random() * (upper - lower + 1));
 };
 
-const convertEventDateIntoDay = (pointDate) => dayjs(pointDate).format('MMM D');
-
-const convertEventDateIntoHour = (pointDate) => dayjs(pointDate).format('HH:mm');
+const convertEventDateIntoDay = (date) => dayjs(date).format('MMM D');
+const convertEventDateIntoHour = (date) => dayjs(date).format('HH:mm');
+const convertEventDateForEditForm = (date) => dayjs(date).format('DD/MM/YY HH:mm');
 
 const generateDates = () => {
   const startDate = dayjs();
@@ -23,10 +23,7 @@ const generateDates = () => {
   };
 };
 
-const subtractDates = (startDate, endDate) => {
-  const dateFrom = dayjs(startDate);
-  const dateTo = dayjs(endDate);
-
+const subtractDates = (dateFrom, dateTo) => {
   const diffInTotalMinutes = Math.ceil(dateTo.diff(dateFrom, 'minute', true));
   const diffInHours = Math.floor(diffInTotalMinutes / TIME.MINUTES) % TIME.HOURS;
   const diffInDays = Math.floor(diffInTotalMinutes / (TIME.MINUTES * TIME.HOURS));
@@ -39,16 +36,28 @@ const subtractDates = (startDate, endDate) => {
   return dayjs.duration(diffInTotalMinutes, 'minutes').format('DD[D] HH[H] mm[M]');
 };
 
+const checkDatesRelativeToCurrent = (dateFrom, dateTo) => dateFrom.isBefore(dayjs()) && dateTo.isAfter(dayjs());
+const isEventPlanned = (dateFrom, dateTo) => dateFrom.isAfter(dayjs()) || checkDatesRelativeToCurrent(dateFrom, dateTo);
+const isEventPassed = (dateFrom, dateTo) => dateTo.isBefore(dayjs()) || checkDatesRelativeToCurrent(dateFrom, dateTo);
 const checkFavoriteOption = (isFavorite) => (isFavorite) ? 'event__favorite-btn--active' : '';
-
 const capitalizeFirstLetter = (str) => str[0].toUpperCase() + str.slice(1);
+
+const filter = {
+  [FILTER_TYPES.EVERYTHING]: (events) => events.map((event) => event),
+  [FILTER_TYPES.FUTURE]: (events) => events.filter((event) => isEventPlanned(event.startDate, event.endDate)),
+  [FILTER_TYPES.PAST]: (events) => events.filter((event) => isEventPassed(event.startDate, event.endDate))
+};
 
 export {
   getRandomInteger,
   convertEventDateIntoDay,
   convertEventDateIntoHour,
+  convertEventDateForEditForm,
   generateDates,
   subtractDates,
+  isEventPlanned,
+  isEventPassed,
   checkFavoriteOption,
-  capitalizeFirstLetter
+  capitalizeFirstLetter,
+  filter
 };
