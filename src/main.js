@@ -1,18 +1,27 @@
-import FiltersView from './view/filters-view.js';
-import TripEventsPresenter from './presenter/trip-events-presenter.js';
-import { render } from './render.js';
-import PointsModel from './model/points-model';
-import EditingFormModel from './model/editing-form-model';
-import DestinationModel from './model/destinations-model';
+import EventsModel from './model/events-model.js';
+import MenuView from './view/menu-view.js';
+import FilterView from './view/filter-view.js';
+import { render, RenderPosition } from './render.js';
+import SortingView from './view/sorting-view';
+import TripInfoView from './view/trip-info-view';
+import RootPresenter from './presenter/root-presenter.js';
+import AddFormView from './view/add-form-view';
 
-const siteHeader = document.querySelector('.trip-main');
-const siteMain = document.querySelector('.page-main');
-const tripPresenter = new TripEventsPresenter();
+const headerElement = document.querySelector('.page-header');
+const mainElement = document.querySelector('.page-main');
 
-const pointsModel = new PointsModel();
-const editingFormModel = new EditingFormModel();
-const destinationsModel = new DestinationModel();
+const tripMainElement = document.querySelector('.trip-main');
+const navigation = headerElement.querySelector('.trip-controls__navigation');
+const filters = headerElement.querySelector('.trip-controls__filters');
+const content = mainElement.querySelector('.trip-events');
+tripMainElement.querySelector('.trip-main__event-add-btn')
+  .addEventListener('click', () => render(new AddFormView(), content, RenderPosition.AFTERBEGIN));
 
-render(new FiltersView(), siteHeader.querySelector('.trip-controls__filters'));
+const routePresenter = new RootPresenter();
+const eventsModel = new EventsModel();
 
-tripPresenter.init(siteMain, pointsModel, editingFormModel, destinationsModel);
+render(new MenuView(), navigation);
+render(new TripInfoView(), tripMainElement, RenderPosition.AFTERBEGIN);
+render(new FilterView(), filters);
+render(new SortingView(), content);
+routePresenter.init(content, eventsModel);

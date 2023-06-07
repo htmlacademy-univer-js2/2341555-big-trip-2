@@ -1,20 +1,31 @@
-import { getRandomNumber, getRandomElement } from '../utils.js';
-import { OFFERS, Prices, OffersCount, TYPES } from './constants.js';
+import { getRandomInteger } from '../utils';
+import { TYPES, OFFER_TITLES } from './const';
 
-const generateOffer = (id) => ({
-  'id': id,
-  'title': getRandomElement(OFFERS),
-  'price': getRandomNumber(Prices.MIN, Prices.MAX),
-});
+const generateOfferTypes = () => {
+  const offerByTypes = [];
+  for (let i = 0; i < TYPES.length; i++) {
+    offerByTypes.push({
+      type: TYPES[i],
+      offers: [... new Set(Array.from({ length: getRandomInteger(1, OFFER_TITLES.length) }, () => getRandomInteger(1, OFFER_TITLES.length - 1)))]
+    });
+  }
+  return offerByTypes;
+};
 
+const generateOffersArray = () => {
+  const offers = [];
 
-const generateOffersByType = (typeId, min = OffersCount.MIN, max = OffersCount.MAX) => ({
-  'type': TYPES[typeId],
-  'offers': Array.from({length: getRandomNumber(min, max)}, (value, id) => generateOffer(id)),
-});
+  for (let i = 0; i < OFFER_TITLES.length; i++) {
+    offers.push({
+      id: i + 1,
+      title: OFFER_TITLES[i],
+      price: getRandomInteger(50, 300)
+    });
+  }
+  return offers;
+};
 
-const generateOffersByAllTypes = () => Array.from({length: TYPES.length}, (value, id) => generateOffersByType(id));
+const OFFERS = generateOffersArray();
+const OFFERS_BY_TYPE = generateOfferTypes();
 
-const getOffersByType = (type) => generateOffersByAllTypes().find((item) => item.type === type).offers;
-
-export {generateOffersByType, getOffersByType};
+export { OFFERS, OFFERS_BY_TYPE };
