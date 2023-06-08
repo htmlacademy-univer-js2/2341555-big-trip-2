@@ -50,11 +50,18 @@ const FILTER_TYPES = {
   PAST: 'past'
 };
 
+const SORT_TYPES = {
+  DEFAULT: 'day',
+  TIME: 'time',
+  PRICE: 'price'
+};
+
 export {
   TIME,
   PRICE,
   TYPES,
   OFFER_TITLES,
   DESTINATIONS,
-  FILTER_TYPES
+  FILTER_TYPES,
+  SORT_TYPES
 };
