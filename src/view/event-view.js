@@ -3,24 +3,21 @@ import { DESTINATIONS } from '../mock/const';
 import { OFFERS } from '../mock/offers.js';
 import AbstractView from '../framework/view/abstract-view';
 
-const createOfferTemplate = (offers) =>
-  offers.reduce((result, offer) => {
+const createOffersListTemplate = (offers) => {
+  const offersTemplate = offers.reduce((result, offer) => {
     const offerInfo = OFFERS.find((item) => item.id === offer);
     return result.concat(
       `<li class="event__offer">
-        <span class="event__offer-title">${offerInfo.title}</span>
-        &plus;&euro;&nbsp;
-        <span class="event__offer-price">${offerInfo.price}</span>
-      </li>\n`);
+      <span class="event__offer-title">${offerInfo.title}</span>
+      &plus;&euro;&nbsp;
+      <span class="event__offer-price">${offerInfo.price}</span>
+    </li>\n`);
   }, '');
 
-
-const createOffersListTemplate = (offers) =>
-  offers.length > 0
-    ? `<ul class="event__selected-offers">
-      ${createOfferTemplate(offers)}
-    </ul>`
-    : '';
+  return `<ul class="event__selected-offers">
+              ${offersTemplate}
+          </ul>`;
+};
 
 
 const createEventTemplate = (event) => {
@@ -45,7 +42,7 @@ const createEventTemplate = (event) => {
       &euro;&nbsp;<span class="event__price">${basePrice}</span>
     </p>
     <h4 class="visually-hidden">Offers:</h4>
-    ${createOffersListTemplate(offers)}
+    ${offers ? createOffersListTemplate(offers) : ''}
     <button class="event__favorite-btn ${checkFavoriteOption(isFavorite)}" type="button">
       <span class="visually-hidden">Add to favorite</span>
       <svg class="event__favorite-icon" width="28" height="28" viewBox="0 0 28 28">

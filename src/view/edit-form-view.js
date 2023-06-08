@@ -22,32 +22,20 @@ const createAvailableOptionsTemplate = (offers, eventType) => {
 
 };
 
-const createDestinationDescriptionTemplate = (destinations, name) => destinations.find((it) => it.name === name).description;
+const createDestinationDescriptionTemplate = (destinations, name) =>
+  destinations.find((it) => it.name === name).description;
 
-const createPicturesListTemplate = (destinations, name) => {
-  const pictures = destinations.find((it) => it.name === name).pictures;
-
-  if (!pictures) {
-    return '';
-  }
-  // const picturesTemplate = pictures.map((picture) =>
-  //   `<img class="event__photo" src="${picture.src}" alt="Event photo">`).join('\n');
-  const picturesTemplate = pictures.reduce((result, picture) =>
-    result.concat(
-      `<img class="event__photo" src="${picture.src}" alt="Event photo">`
-    ), '');
-
-  return (
-    `<div class="event__photos-container">
+const createPicturesListTemplate = (pictures) =>
+  `<div class="event__photos-container">
       <div class="event__photos-tape">
-      ${picturesTemplate}
+      ${pictures.reduce((result, picture) =>
+    result.concat(`<img class="event__photo" src="${picture.src}" alt="Event photo">`), '')}
       </div>
-    </div>`);
-};
+   </div>`;
 
 const createEditFormTemplate = (event) => {
   const { destination, type, basePrice, startDate, endDate } = event;
-  const name = DESTINATIONS.find((item) => (item.id === destination)).name;
+  const data = DESTINATIONS.find((item) => (item.id === destination));
 
   return `<form class="event event--edit" action="#" method="post">
             <header class="event__header">
@@ -103,7 +91,7 @@ const createEditFormTemplate = (event) => {
                 <label class="event__label  event__type-output" for="event-destination-1">
                   ${capitalizeFirstLetter(type)}
                 </label>
-                <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${name}" list="destination-list-1">
+                <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${data.name}" list="destination-list-1">
                 <datalist id="destination-list-1">
                   ${createDestionationsOptionsTemplate(DESTINATIONS)}
                 </datalist>
@@ -137,8 +125,8 @@ const createEditFormTemplate = (event) => {
               </section>
               <section class="event__section  event__section--destination">
                 <h3 class="event__section-title  event__section-title--destination">Destination</h3>
-                <p class="event__destination-description">${createDestinationDescriptionTemplate(DESTINATIONS, name)}</p>
-                ${createPicturesListTemplate(DESTINATIONS, name)}
+                <p class="event__destination-description">${createDestinationDescriptionTemplate(DESTINATIONS, data.name)}</p>
+                ${data.pictures ? createPicturesListTemplate(data.pictures) : ''}
               </section>
             </section>
             </form>`;
