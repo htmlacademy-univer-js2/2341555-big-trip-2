@@ -24,6 +24,27 @@ const createAvailableOptionsTemplate = (offers, eventType) => {
 
 const createDestinationDescriptionTemplate = (destinations, name) => destinations.find((it) => it.name === name).description;
 
+const createPicturesListTemplate = (destinations, name) => {
+  const pictures = destinations.find((it) => it.name === name).pictures;
+
+  if (!pictures) {
+    return '';
+  }
+  // const picturesTemplate = pictures.map((picture) =>
+  //   `<img class="event__photo" src="${picture.src}" alt="Event photo">`).join('\n');
+  const picturesTemplate = pictures.reduce((result, picture) =>
+    result.concat(
+      `<img class="event__photo" src="${picture.src}" alt="Event photo">`
+    ), '');
+
+  return (
+    `<div class="event__photos-container">
+      <div class="event__photos-tape">
+      ${picturesTemplate}
+      </div>
+    </div>`);
+};
+
 const createEditFormTemplate = (event) => {
   const { destination, type, basePrice, startDate, endDate } = event;
   const name = DESTINATIONS.find((item) => (item.id === destination)).name;
@@ -117,6 +138,7 @@ const createEditFormTemplate = (event) => {
               <section class="event__section  event__section--destination">
                 <h3 class="event__section-title  event__section-title--destination">Destination</h3>
                 <p class="event__destination-description">${createDestinationDescriptionTemplate(DESTINATIONS, name)}</p>
+                ${createPicturesListTemplate(DESTINATIONS, name)}
               </section>
             </section>
             </form>`;
@@ -141,7 +163,7 @@ export default class EditFormView extends AbstractView {
 
   #rollDownHandler = (e) => {
     e.preventDefault();
-    this._callback.rollDown();
+    this._callback.rollDown(this.#event);
   }
 
   setSaveHandler = (callback) => {
@@ -151,6 +173,6 @@ export default class EditFormView extends AbstractView {
 
   #saveHandler = (e) => {
     e.preventDefault();
-    this._callback.save();
+    this._callback.save(this.#event);
   }
 }
