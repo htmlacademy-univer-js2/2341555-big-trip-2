@@ -1,60 +1,64 @@
-import { render, RenderPosition, replace } from '../framework/render';
-import EditFormView from '../view/edit-form-view.js';
+import { render } from '../framework/render';
 import EventsListView from '../view/events-list-view.js';
 import SortingView from '../view/sorting-view';
-import EventView from '../view/event-view.js';
 import EmptyListView from '../view/empty-list-view';
+import EventPresenter from './event-presenter';
+import { update } from '../utils';
 
 export default class RootPresenter {
   #rootContainer = null;
   #eventsModel = null;
   #events = null;
   #eventsList = new EventsListView();
+  #sortComponent = new SortingView();
+  #emptyList = new EmptyListView();
+  #eventPresenter = new Map();
 
-  #renderEvent = (event) => {
-    const eventComponent = new EventView(event);
-    const eventEditComponent = new EditFormView(event);
-
-    const eventToEdit = () => replace(eventEditComponent, eventComponent);
-
-    const editToEvent = () => replace(eventComponent, eventEditComponent);
-
-    const onEscKeyDown = (evt) => {
-      if (evt.key === 'Escape' || evt.key === 'Esc') {
-        evt.preventDefault();
-        editToEvent();
-        document.removeEventListener('keydown', onEscKeyDown);
-      }
-    };
-
-    eventComponent.setRollUpHandler(() => {
-      eventToEdit();
-      document.addEventListener('keydown', onEscKeyDown);
-    });
-
-    eventEditComponent.setRollDownHandler(() => {
-      editToEvent();
-      document.removeEventListener('keydown', onEscKeyDown);
-    });
-
-    eventEditComponent.setSaveHandler(() => {
-      editToEvent();
-      document.removeEventListener('keydown', onEscKeyDown);
-    });
-
-    render(eventComponent, this.#eventsList.element);
-  };
-
-  init = (rootContainer, eventsModel) => {
+  constructor(rootContainer, eventsModel) {
     this.#rootContainer = rootContainer;
     this.#eventsModel = eventsModel;
-    this.#events = [...this.#eventsModel.events];
-    render(this.#eventsList, this.#rootContainer);
-    if (this.#events.length) {
-      render(new SortingView(), this.#rootContainer, RenderPosition.AFTERBEGIN);
-      this.#events.forEach((event) => this.#renderEvent(event));
-    } else {
-      render(new EmptyListView(), this.#rootContainer);
-    }
   }
+
+  init = () => {
+    this.#events = [...this.#eventsModel.events];
+    this.#renderEventsList();
+  }
+
+  #changePointHandler = (updatedEvent) => {
+    this.#events = update(this.#events, updatedEvent);
+    this.#eventPresenter.get(updatedEvent.id).init(updatedEvent);
+  };
+
+  #switchModeHandler = () => {
+    this.#eventPresenter.forEach((presenter) => presenter.resetView());
+  };
+
+  #renderEventsList = () => {
+    if (this.#events.length) {
+      this.#renderSort();
+      render(this.#eventsList, this.#rootContainer);
+      this.#renderEvents();
+    } else {
+      this.#renderEmptyList();
+    }
+  };
+
+  #clearEventstList = () => {
+    this.#eventPresenter.forEach((presenter) => presenter.destroy());
+    this.#eventPresenter.clear();
+  };
+
+  #renderEvent = (event) => {
+    const eventPresenter = new EventPresenter(this.#eventsList.element,
+      this.#changePointHandler, this.#switchModeHandler);
+    eventPresenter.init(event);
+    this.#eventPresenter.set(event.id, eventPresenter);
+  };
+
+  #renderEvents = () => {
+    this.#events.forEach((event) => this.#renderEvent(event));
+  };
+
+  #renderSort = () => render(this.#sortComponent, this.#rootContainer);
+  #renderEmptyList = () => render(this.#emptyList, this.#rootContainer);
 }
