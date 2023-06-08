@@ -20,8 +20,7 @@ const createOffersListTemplate = (offers) => {
 };
 
 
-const createEventTemplate = (event) => {
-  const { basePrice, destination, startDate, endDate, isFavorite, offers, type } = event;
+const createEventTemplate = ({ basePrice, destination, startDate, endDate, isFavorite, offers, type }) => {
   const name = DESTINATIONS.find((item) => (item.id === destination)).name;
 
   return `<li class="trip-events__item">

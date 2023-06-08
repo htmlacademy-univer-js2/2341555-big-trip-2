@@ -28,7 +28,7 @@ export default class RootPresenter {
     this.#renderEventsList();
   }
 
-  #changePointHandler = (updatedEvent) => {
+  #changeEventHandler = (updatedEvent) => {
     this.#events = update(this.#events, updatedEvent);
     this.#initialEvents = update(this.#initialEvents, updatedEvent);
     this.#eventPresenter.get(updatedEvent.id).init(updatedEvent);
@@ -79,7 +79,7 @@ export default class RootPresenter {
 
   #renderEvent = (event) => {
     const eventPresenter = new EventPresenter(this.#eventsList.element,
-      this.#changePointHandler, this.#switchModeHandler);
+      this.#changeEventHandler, this.#switchModeHandler);
     eventPresenter.init(event);
     this.#eventPresenter.set(event.id, eventPresenter);
   };
