@@ -1,7 +1,11 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view';
-import { DESTINATIONS } from '../mock/const';
+import { DESTINATIONS, NEW_POINT } from '../mock/const';
 import { OFFERS, OFFERS_BY_TYPE } from '../mock/offers.js';
-import { convertEventDateForEditForm, capitalizeFirstLetter, isSubmitDisabledByDate } from '../utils';
+import {
+  convertEventDateForEditForm, capitalizeFirstLetter,
+  isSubmitDisabledByDate, isSubmitDisabledByPrice
+} from '../utils';
+import he from 'he';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 
@@ -93,7 +97,7 @@ const createEditFormTemplate = ({ selectedDestination, type, basePrice, startDat
           <label class="event__label  event__type-output" for="event-destination-1">
             ${capitalizeFirstLetter(type)}
           </label>
-          <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${selectedDestination.name}" list="destination-list-1">
+          <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${he.encode(selectedDestination.name)}" list="destination-list-1">
           <datalist id="destination-list-1">
             ${createDestionationsOptionsTemplate(DESTINATIONS)}
           </datalist>
@@ -112,7 +116,8 @@ const createEditFormTemplate = ({ selectedDestination, type, basePrice, startDat
           </label>
           <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${basePrice}">
         </div>
-        <button class="event__save-btn  btn  btn--blue" type="submit" ${isSubmitDisabledByDate(startDate, endDate) ? '' : 'disabled'}>Save</button>
+        <button class="event__save-btn  btn  btn--blue" type="submit" ${isSubmitDisabledByDate(startDate, endDate) ? '' : 'disabled'}
+        ${isSubmitDisabledByPrice(basePrice) ? '' : 'disabled'}>Save</button>
         <button class="event__reset-btn" type="reset">Delete</button>
         <button class="event__rollup-btn" type="button">
           <span class="visually-hidden">Open event</span>
@@ -138,7 +143,7 @@ export default class EditFormView extends AbstractStatefulView {
   #startDatepicker;
   #stopDatepicker;
 
-  constructor(event) {
+  constructor(event = NEW_POINT) {
     super();
     this._state = EditFormView.parseEvent(event);
     this.#setInnerHandlers();
@@ -185,6 +190,7 @@ export default class EditFormView extends AbstractStatefulView {
     this.setRollDownHandler(this._callback.rollDown);
     this.#setStartDatepicker();
     this.#setStopDatepicker();
+    this.setDeleteHandler(this._callback.deleteClick);
   };
 
   #setStartDatepicker = () => {
@@ -253,12 +259,25 @@ export default class EditFormView extends AbstractStatefulView {
     this._callback.save(EditFormView.parseState(this._state));
   }
 
+  setDeleteHandler = (callback) => {
+    this._callback.deleteClick = callback;
+    this.element.querySelector('.event__reset-btn').addEventListener('click', this.#deleteHandler);
+  };
+
+  #deleteHandler = (e) => {
+    e.preventDefault();
+    this._callback.deleteClick(EditFormView.parseState(this._state));
+  };
+
   #destinationToggleHandler = (e) => {
     e.preventDefault();
     if (e.target.value !== '') {
-      this.updateElement({
-        selectedDestination: DESTINATIONS.find((item) => (item.name === e.target.value)),
-      });
+      const findDestinationIndex = DESTINATIONS.findIndex((item) => (item.name === e.target.value));
+      if (findDestinationIndex !== -1) {
+        this.updateElement({
+          selectedDestination: DESTINATIONS.find((item) => (item.name === e.target.value)),
+        });
+      }
     }
   };
 
@@ -276,12 +295,10 @@ export default class EditFormView extends AbstractStatefulView {
   };
 
   #offerToggleHandler = (e) => {
-    if (e.target.tagName.toLowerCase() !== 'label') {
-      return;
-    }
     e.preventDefault();
+    const clickedElementInput = e.target.closest('div').childNodes[1];
     const selectedOffers = this._state.offers;
-    const clickedOffer = parseInt((e.target.htmlFor).match(/\d+/g), 10);
+    const clickedOffer = parseInt((clickedElementInput.id).match(/\d+/g), 10);
     const clickedOfferId = selectedOffers.indexOf(clickedOffer);
 
     if (clickedOfferId === -1) {
@@ -299,5 +316,13 @@ export default class EditFormView extends AbstractStatefulView {
     this.element.querySelector('.event__input--destination').addEventListener('change', this.#destinationToggleHandler);
     this.element.querySelector('.event__type-group').addEventListener('click', this.#typeToggleHandler);
     this.element.querySelector('.event__available-offers').addEventListener('click', this.#offerToggleHandler);
+    this.element.querySelector('.event__input--price').addEventListener('change', this.#priceToggleHandler);
+  };
+
+  #priceToggleHandler = (e) => {
+    e.preventDefault();
+    this.updateElement({
+      basePrice: e.target.value
+    });
   };
 }
