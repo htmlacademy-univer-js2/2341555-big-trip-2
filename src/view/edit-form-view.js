@@ -1,7 +1,9 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view';
 import { DESTINATIONS } from '../mock/const';
 import { OFFERS, OFFERS_BY_TYPE } from '../mock/offers.js';
-import { convertEventDateForEditForm, capitalizeFirstLetter } from '../utils';
+import { convertEventDateForEditForm, capitalizeFirstLetter, isSubmitDisabledByDate } from '../utils';
+import flatpickr from 'flatpickr';
+import 'flatpickr/dist/flatpickr.min.css';
 
 const createDestionationsOptionsTemplate = (destinations) =>
   destinations.reduce((result, destination) =>
@@ -110,7 +112,7 @@ const createEditFormTemplate = ({ selectedDestination, type, basePrice, startDat
           </label>
           <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${basePrice}">
         </div>
-        <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
+        <button class="event__save-btn  btn  btn--blue" type="submit" ${isSubmitDisabledByDate(startDate, endDate) ? '' : 'disabled'}>Save</button>
         <button class="event__reset-btn" type="reset">Delete</button>
         <button class="event__rollup-btn" type="button">
           <span class="visually-hidden">Open event</span>
@@ -133,15 +135,47 @@ const createEditFormTemplate = ({ selectedDestination, type, basePrice, startDat
     </li>`;
 
 export default class EditFormView extends AbstractStatefulView {
+  #startDatepicker;
+  #stopDatepicker;
+
   constructor(event) {
     super();
     this._state = EditFormView.parseEvent(event);
     this.#setInnerHandlers();
+    this.#setStartDatepicker();
+    this.#setStopDatepicker(this._state.startDate);
   }
+
+  static parseEvent = (event) => ({
+    ...event,
+    selectedDestination: DESTINATIONS.find((item) => (item.id === event.destination)),
+    availableOffers: OFFERS_BY_TYPE.find((item) => (item.type === event.type)).offers,
+    selectedOffers: event.offers
+  });
+
+  static parseState = (state) => {
+    const event = { ...state, destination: state.selectedDestination.id };
+    delete event.selectedDestination;
+    delete event.availableOffersId;
+    return event;
+  };
 
   get template() {
     return createEditFormTemplate(this._state);
   }
+
+  removeElement = () => {
+    super.removeElement();
+    if (this.#startDatepicker) {
+      this.#startDatepicker.destroy();
+      this.#startDatepicker = null;
+    }
+
+    if (this.#stopDatepicker) {
+      this.#stopDatepicker.destroy();
+      this.#stopDatepicker = null;
+    }
+  };
 
   reset = (event) => this.updateElement(EditFormView.parseEvent(event));
 
@@ -149,7 +183,53 @@ export default class EditFormView extends AbstractStatefulView {
     this.#setInnerHandlers();
     this.setSaveHandler(this._callback.save);
     this.setRollDownHandler(this._callback.rollDown);
+    this.#setStartDatepicker();
+    this.#setStopDatepicker();
   };
+
+  #setStartDatepicker = () => {
+    this.#startDatepicker = flatpickr(
+      this.element.querySelector('[name = "event-start-time"]'),
+      {
+        enableTime: true,
+        dateFormat: 'd/m/y H:i',
+        'time_24hr': true,
+        onChange: this.#startDateChangeHandler
+      },
+    );
+  };
+
+  #startDateChangeHandler = ([userStartDate]) => {
+    this.updateElement({
+      startDate: userStartDate,
+    });
+  };
+
+
+  #setStopDatepicker = () => {
+    const startDate = this._state.startDate;
+    this.#stopDatepicker = flatpickr(
+      this.element.querySelector('[name = "event-end-time"]'),
+      {
+        enableTime: true,
+        dateFormat: 'd/m/y H:i',
+        'time_24hr': true,
+        onChange: this.#endDateChangeHandler,
+        disable: [
+          function (date) {
+            return date < startDate;
+          }
+        ]
+      },
+    );
+  };
+
+  #endDateChangeHandler = ([userEndDate]) => {
+    this.updateElement({
+      endDate: userEndDate,
+    });
+  };
+
 
   setRollDownHandler = (callback) => {
     this._callback.rollDown = callback;
@@ -175,24 +255,33 @@ export default class EditFormView extends AbstractStatefulView {
 
   #destinationToggleHandler = (e) => {
     e.preventDefault();
-    this.updateElement({
-      selectedDestination: DESTINATIONS.find((item) => (item.name === e.target.value)),
-    });
+    if (e.target.value !== '') {
+      this.updateElement({
+        selectedDestination: DESTINATIONS.find((item) => (item.name === e.target.value)),
+      });
+    }
   };
 
   #typeToggleHandler = (e) => {
+    if (!e.target.matches('input[name=event-type]')) {
+      return;
+    }
+    const typeValue = e.target.value;
     e.preventDefault();
     this.updateElement({
-      type: e.target.value,
+      type: typeValue,
       offers: [],
-      availableOffers: OFFERS_BY_TYPE.find((item) => (item.type === e.target.value)).offers
+      availableOffers: OFFERS_BY_TYPE.find((item) => (item.type === typeValue)).offers
     });
   };
 
   #offerToggleHandler = (e) => {
+    if (e.target.tagName.toLowerCase() !== 'label') {
+      return;
+    }
     e.preventDefault();
     const selectedOffers = this._state.offers;
-    const clickedOffer = parseInt((e.target.id).match(/\d+/g), 10);
+    const clickedOffer = parseInt((e.target.htmlFor).match(/\d+/g), 10);
     const clickedOfferId = selectedOffers.indexOf(clickedOffer);
 
     if (clickedOfferId === -1) {
@@ -208,24 +297,7 @@ export default class EditFormView extends AbstractStatefulView {
 
   #setInnerHandlers = () => {
     this.element.querySelector('.event__input--destination').addEventListener('change', this.#destinationToggleHandler);
-    Array.from(this.element.querySelectorAll('.event__type-input'))
-      .forEach((typeElement) => typeElement.addEventListener('click', this.#typeToggleHandler));
-    Array.from(this.element.querySelectorAll('.event__offer-checkbox')).forEach((offerElement) => offerElement
-      .addEventListener('click', this.#offerToggleHandler)
-    );
-  };
-
-  static parseEvent = (event) => ({
-    ...event,
-    selectedDestination: DESTINATIONS.find((item) => (item.id === event.destination)),
-    availableOffers: OFFERS_BY_TYPE.find((item) => (item.type === event.type)).offers,
-    selectedOffers: event.offers
-  });
-
-  static parseState = (state) => {
-    const event = { ...state, destination: state.selectedDestination.id };
-    delete event.selectedDestination;
-    delete event.availableOffersId;
-    return event;
+    this.element.querySelector('.event__type-group').addEventListener('click', this.#typeToggleHandler);
+    this.element.querySelector('.event__available-offers').addEventListener('click', this.#offerToggleHandler);
   };
 }
