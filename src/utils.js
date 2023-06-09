@@ -24,7 +24,7 @@ const generateDates = () => {
 };
 
 const subtractDates = (dateFrom, dateTo) => {
-  const diffInTotalMinutes = Math.ceil(dateTo.diff(dateFrom, 'minute', true));
+  const diffInTotalMinutes = Math.ceil(dayjs(dateTo).diff(dayjs(dateFrom), 'minute', true));
   const diffInHours = Math.floor(diffInTotalMinutes / TIME.MINUTES) % TIME.HOURS;
   const diffInDays = Math.floor(diffInTotalMinutes / (TIME.MINUTES * TIME.HOURS));
 
@@ -39,8 +39,9 @@ const subtractDates = (dateFrom, dateTo) => {
 const checkDatesRelativeToCurrent = (dateFrom, dateTo) => dateFrom.isBefore(dayjs()) && dateTo.isAfter(dayjs());
 const isEventPlanned = (dateFrom, dateTo) => dateFrom.isAfter(dayjs()) || checkDatesRelativeToCurrent(dateFrom, dateTo);
 const isEventPassed = (dateFrom, dateTo) => dateTo.isBefore(dayjs()) || checkDatesRelativeToCurrent(dateFrom, dateTo);
-const checkFavoriteOption = (isFavorite) => (isFavorite) ? 'event__favorite-btn--active' : '';
+const isFavoriteOption = (isFavorite) => (isFavorite) ? 'event__favorite-btn--active' : '';
 const capitalizeFirstLetter = (str) => str[0].toUpperCase() + str.slice(1);
+const isSubmitDisabledByDate = (dateTo, dateFrom) => dayjs(dateTo).diff(dayjs(dateFrom)) <= 0;
 
 const filter = {
   [FILTER_TYPES.EVERYTHING]: (events) => events.map((event) => event),
@@ -52,8 +53,8 @@ const update = (items, updatedItem) => items.map((item) => item.id === updatedIt
 
 const sortByPrice = (a, b) => b.basePrice - a.basePrice;
 const sortByDuration = (a, b) => {
-  const durationA = Math.ceil(a.endDate.diff(a.startDate, 'minute', true));
-  const durationB = Math.ceil(b.endDate.diff(b.startDate, 'minute', true));
+  const durationA = Math.ceil(dayjs(a.endDate).diff(dayjs(a.startDate), 'minute', true));
+  const durationB = Math.ceil(dayjs(b.endDate).diff(dayjs(b.startDate), 'minute', true));
   return durationB - durationA;
 };
 const sortByDate = (a, b) => dayjs(a.startDate) - dayjs(b.startDate);
@@ -67,7 +68,8 @@ export {
   subtractDates,
   isEventPlanned,
   isEventPassed,
-  checkFavoriteOption,
+  isSubmitDisabledByDate,
+  isFavoriteOption as checkFavoriteOption,
   capitalizeFirstLetter,
   filter,
   update,
