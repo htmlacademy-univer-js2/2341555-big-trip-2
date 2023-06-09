@@ -16,7 +16,7 @@ const convertEventDateIntoHour = (date) => dayjs(date).format('HH:mm');
 const convertEventDateForEditForm = (date) => dayjs(date).format('DD/MM/YY HH:mm');
 
 const generateDates = () => {
-  const startDate = dayjs().subtract(getRandomInteger(0, TIME.MINUTES * 2), 'minutes');
+  const startDate = dayjs().subtract(getRandomInteger(-2 * TIME.HOURS * TIME.MINUTES, 2 * TIME.HOURS * TIME.MINUTES), 'minutes');
   return {
     startDate: startDate,
     endDate: startDate.add(getRandomInteger(TIME.MINUTES / 2, TIME.HOURS * TIME.MINUTES * 2), 'minutes')
@@ -42,14 +42,14 @@ const isEventPassed = (dateFrom, dateTo) => dateTo.isBefore(dayjs()) || checkDat
 const isFavoriteOption = (isFavorite) => (isFavorite) ? 'event__favorite-btn--active' : '';
 const capitalizeFirstLetter = (str) => str[0].toUpperCase() + str.slice(1);
 const isSubmitDisabledByDate = (dateTo, dateFrom) => dayjs(dateTo).diff(dayjs(dateFrom)) <= 0;
+const isSubmitDisabledByPrice = (price) => Number(price) > 0 && Number.isInteger(Number(price));
+const isDatesEqual = (dateA, dateB) => dayjs(dateA).isSame(dateB, 'D');
 
 const filter = {
   [FILTER_TYPES.EVERYTHING]: (events) => events.map((event) => event),
   [FILTER_TYPES.FUTURE]: (events) => events.filter((event) => isEventPlanned(event.startDate, event.endDate)),
   [FILTER_TYPES.PAST]: (events) => events.filter((event) => isEventPassed(event.startDate, event.endDate))
 };
-
-const update = (items, updatedItem) => items.map((item) => item.id === updatedItem.id ? updatedItem : item);
 
 const sortByPrice = (a, b) => b.basePrice - a.basePrice;
 const sortByDuration = (a, b) => {
@@ -69,10 +69,11 @@ export {
   isEventPlanned,
   isEventPassed,
   isSubmitDisabledByDate,
-  isFavoriteOption as checkFavoriteOption,
+  isSubmitDisabledByPrice,
+  isFavoriteOption,
+  isDatesEqual,
   capitalizeFirstLetter,
   filter,
-  update,
   sortByPrice,
   sortByDuration,
   sortByDate

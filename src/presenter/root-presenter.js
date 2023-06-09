@@ -3,89 +3,115 @@ import EventsListView from '../view/events-list-view.js';
 import SortingView from '../view/sorting-view';
 import EmptyListView from '../view/empty-list-view';
 import EventPresenter from './event-presenter';
-import { sortByPrice, sortByDuration, sortByDate, update } from '../utils';
-import { SORT_TYPES } from '../mock/const';
+import { sortByPrice, sortByDuration, sortByDate, filter } from '../utils';
+import { SORT_TYPES, UPDATE_TYPES, USER_ACTIONS, FILTER_TYPES } from '../mock/const';
+import NewEventPresenter from './new-event-presenter';
+
 
 export default class RootPresenter {
   #rootContainer;
   #eventsModel;
-  #events;
-  #sortComponent;
+  #filterModel;
+  #sortComponent = null;
   #eventsList = new EventsListView();
-  #emptyList = new EmptyListView();
+  #emptyList = null;
   #eventPresenter = new Map();
+  #newEventPresenter;
   #currentSortType = SORT_TYPES.DEFAULT;
-  #initialEvents = [];
+  #filterType = FILTER_TYPES.EVERYTHING;
 
-  constructor(rootContainer, eventsModel) {
+  constructor(rootContainer, eventsModel, filterModel) {
     this.#rootContainer = rootContainer;
     this.#eventsModel = eventsModel;
+    this.#filterModel = filterModel;
+    this.#newEventPresenter = new NewEventPresenter(this.#eventsList.element, this.#actionHandler);
+    this.#eventsModel.addObserver(this.#modelEventHandler);
+    this.#filterModel.addObserver(this.#modelEventHandler);
   }
+
 
   init = () => {
-    this.#initialEvents = [...this.#eventsModel.events];
-    this.#events = [...this.#eventsModel.events].sort(sortByDate);
-    this.#renderEventsList();
+    this.#render();
   }
 
-  #changeEventHandler = (updatedEvent) => {
-    this.#events = update(this.#events, updatedEvent);
-    this.#initialEvents = update(this.#initialEvents, updatedEvent);
-    this.#eventPresenter.get(updatedEvent.id).init(updatedEvent);
+  get events() {
+    this.#filterType = this.#filterModel.filter;
+    const events = this.#eventsModel.events;
+    const filteredEvents = filter[this.#filterType](events);
+
+    switch (this.#currentSortType) {
+      case SORT_TYPES.PRICE:
+        return filteredEvents.sort(sortByPrice);
+      case SORT_TYPES.TIME:
+        return filteredEvents.sort(sortByDuration);
+      default:
+        return filteredEvents.sort(sortByDate);
+    }
+  }
+
+  createEvent = (callback) => {
+    this.#currentSortType = SORT_TYPES.DEFAULT;
+    this.#filterModel.setFilter(UPDATE_TYPES.MAJOR, FILTER_TYPES.EVERYTHING);
+    this.#newEventPresenter.init(callback);
   };
 
   #switchModeHandler = () => {
+    this.#newEventPresenter.destroy();
     this.#eventPresenter.forEach((presenter) => presenter.resetView());
   };
 
-  #sort = (sortType) => {
-    switch (sortType) {
-      case SORT_TYPES.PRICE:
-        this.#events.sort(sortByPrice);
+  #actionHandler = (actionType, updateType, update) => {
+    switch (actionType) {
+      case USER_ACTIONS.UPDATE:
+        this.#eventsModel.updateEvent(updateType, update);
         break;
-      case SORT_TYPES.TIME:
-        this.#events.sort(sortByDuration);
+      case USER_ACTIONS.ADD:
+        this.#eventsModel.addEventt(updateType, update);
+        break;
+      case USER_ACTIONS.DELETE:
+        this.#eventsModel.deleteEvent(updateType, update);
         break;
       default:
-        this.#events.sort(sortByDate);
+        throw new Error(`Action Type ${actionType} is undefined.`);
     }
+  };
 
-    this.#currentSortType = sortType;
+  #modelEventHandler = (updateType, data) => {
+    switch (updateType) {
+      case UPDATE_TYPES.PATCH:
+        this.#eventPresenter.get(data.id).init(data);
+        break;
+      case UPDATE_TYPES.MINOR:
+        this.#clear();
+        this.#render();
+        break;
+      case UPDATE_TYPES.MAJOR:
+        this.#clear({ resetSortType: true });
+        this.#render();
+        break;
+      default:
+        throw new Error(`Update Type ${updateType} is undefined.`);
+    }
   };
 
   #sortHandler = (sortType) => {
     if (this.#currentSortType === sortType) {
       return;
     }
-    this.#sort(sortType);
-    this.#clearEventstList();
-    this.#renderEventsList();
-  };
-
-  #renderEventsList = () => {
-    if (this.#events.length) {
-      this.#renderSort();
-      render(this.#eventsList, this.#rootContainer);
-      this.#renderEvents();
-    } else {
-      this.#renderEmptyList();
-    }
-  };
-
-  #clearEventstList = () => {
-    this.#eventPresenter.forEach((presenter) => presenter.destroy());
-    this.#eventPresenter.clear();
+    this.#currentSortType = sortType;
+    this.#clear();
+    this.#render();
   };
 
   #renderEvent = (event) => {
     const eventPresenter = new EventPresenter(this.#eventsList.element,
-      this.#changeEventHandler, this.#switchModeHandler);
+      this.#actionHandler, this.#switchModeHandler);
     eventPresenter.init(event);
     this.#eventPresenter.set(event.id, eventPresenter);
   };
 
-  #renderEvents = () => {
-    this.#events.forEach((event) => this.#renderEvent(event));
+  #renderEvents = (events) => {
+    events.forEach((event) => this.#renderEvent(event));
   };
 
   #renderSort = () => {
@@ -98,5 +124,36 @@ export default class RootPresenter {
     this.#sortComponent.setSortHandler(this.#sortHandler);
   };
 
-  #renderEmptyList = () => render(this.#emptyList, this.#rootContainer);
+  #renderEmptyList = () => {
+    this.#emptyList = new EmptyListView(this.#filterType);
+    render(this.#emptyList, this.#rootContainer);
+  }
+
+  #render = () => {
+    const events = this.events;
+    if (!events.length) {
+      this.#renderEmptyList();
+      return;
+    }
+    this.#renderSort();
+    render(this.#eventsList, this.#rootContainer);
+    this.#renderEvents(events);
+  };
+
+  #clear = ({ resetSortType = false } = {}) => {
+    this.#newEventPresenter.destroy();
+    this.#eventPresenter.forEach((presenter) => presenter.destroy());
+    this.#eventPresenter.clear();
+
+    remove(this.#sortComponent);
+    remove(this.#emptyList);
+
+    if (this.#emptyList) {
+      remove(this.#emptyList);
+    }
+
+    if (resetSortType) {
+      this.#currentSortType = SORT_TYPES.DEFAULT;
+    }
+  };
 }

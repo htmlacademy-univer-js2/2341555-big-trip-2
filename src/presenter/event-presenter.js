@@ -1,6 +1,9 @@
 import { render, replace, remove } from '../framework/render.js';
 import EventView from '../view/event-view.js';
 import EditFormView from '../view/edit-form-view';
+import { USER_ACTIONS, UPDATE_TYPES } from '../mock/const.js';
+import { isDatesEqual } from '../utils';
+
 
 const MODE = {
   DEFAULT: 'default',
@@ -32,6 +35,7 @@ export default class EventPresenter {
     this.#editComponent = new EditFormView(event);
     this.#editComponent.setRollDownHandler(this.#eventClickHandler);
     this.#editComponent.setSaveHandler(this.#saveHandler);
+    this.#editComponent.setDeleteHandler(this.#deleteHandler);
 
     if (!previousEventComponent || !previousEventEditComponent) {
       render(this.#eventComponent, this.#eventsListContainer);
@@ -83,15 +87,34 @@ export default class EventPresenter {
     }
   };
 
-  #favoriteClickHandler = () => this.#changeData({ ...this.#event, isFavorite: !this.#event.isFavorite });
+  #favoriteClickHandler = () => this.#changeData(
+    USER_ACTIONS.UPDATE,
+    UPDATE_TYPES.MINOR,
+    { ...this.#event, isFavorite: !this.#event.isFavorite }
+  );
+
   #editClickHandler = () => this.#eventToEdit();
   #eventClickHandler = () => {
     this.#editComponent.reset(this.#event);
     this.#editToEvent();
   };
 
-  #saveHandler = (event) => {
-    this.#changeData({ ...event });
+  #saveHandler = (update) => {
+    const isMinorUpdate = isDatesEqual(this.#event.startDate, update.startDate);
+    this.#changeData(
+      USER_ACTIONS.UPDATE,
+      isMinorUpdate ? UPDATE_TYPES.PATCH : UPDATE_TYPES.MINOR,
+      update,
+    );
     this.#editToEvent();
-  }
+  };
+
+  #deleteHandler = (event) => {
+    this.#changeData(
+      USER_ACTIONS.DELETE,
+      UPDATE_TYPES.MINOR,
+      event,
+    );
+    document.removeEventListener('keydown', this.#escKeyDownHandler);
+  };
 }
