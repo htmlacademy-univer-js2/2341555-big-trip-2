@@ -79,6 +79,7 @@ const UPDATE_TYPES = {
   PATCH: 'PATCH',
   MINOR: 'MINOR',
   MAJOR: 'MAJOR',
+  INIT: 'INIT'
 };
 
 const NEW_POINT = {

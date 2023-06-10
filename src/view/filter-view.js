@@ -38,8 +38,8 @@ export default class FilterView extends AbstractView {
     this.element.addEventListener('change', this.#changeHandler);
   };
 
-  #changeHandler = (evt) => {
-    evt.preventDefault();
-    this._callback.change(evt.target.value);
+  #changeHandler = (e) => {
+    e.preventDefault();
+    this._callback.change(e.target.value);
   };
 }

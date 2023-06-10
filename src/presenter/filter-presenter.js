@@ -1,7 +1,7 @@
 import { render, replace, remove } from '../framework/render.js';
 import FilterView from '../view/filter-view.js';
 import { filter } from '../utils.js';
-import { FILTER_TYPES, UPDATE_TYPES } from '../mock/const.js';
+import { FILTER_TYPES, UPDATE_TYPES as UPDATE_TYPE } from '../const.js';
 
 export default class FilterPresenter {
   #filterContainer;
@@ -13,8 +13,8 @@ export default class FilterPresenter {
     this.#filterContainer = filterContainer;
     this.#filterModel = filterModel;
     this.#eventsModel = eventsModel;
-    this.#eventsModel.addObserver(this.#ModelEventHandler);
-    this.#filterModel.addObserver(this.#ModelEventHandler);
+    this.#eventsModel.addObserver(this.#modelEventHandler);
+    this.#filterModel.addObserver(this.#modelEventHandler);
   }
 
   get filters() {
@@ -55,7 +55,7 @@ export default class FilterPresenter {
     remove(prevFilterComponent);
   };
 
-  #ModelEventHandler = () => {
+  #modelEventHandler = () => {
     this.init();
   };
 
@@ -64,6 +64,6 @@ export default class FilterPresenter {
       return;
     }
 
-    this.#filterModel.setFilter(UPDATE_TYPES.MAJOR, filterType);
+    this.#filterModel.setFilter(UPDATE_TYPE.MAJOR, filterType);
   };
 }
