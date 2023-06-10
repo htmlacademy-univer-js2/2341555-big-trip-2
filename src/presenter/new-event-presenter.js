@@ -1,7 +1,7 @@
 import { remove, render, RenderPosition } from '../framework/render.js';
 import EditFormView from '../view/edit-form-view.js';
 import { nanoid } from 'nanoid';
-import { USER_ACTIONS, UPDATE_TYPES } from '../mock/const.js';
+import { USER_ACTIONS, UPDATE_TYPES } from '../const.js';
 
 export default class NewEventPresenter {
   #eventsListContainer = null;

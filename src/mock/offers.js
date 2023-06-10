@@ -1,5 +1,5 @@
 import { getRandomInteger } from '../utils';
-import { TYPES, OFFER_TITLES } from './const';
+import { TYPES, OFFER_TITLES } from '../const';
 
 const generateOfferTypes = () => TYPES.map((type) => (
   {

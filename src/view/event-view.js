@@ -1,27 +1,27 @@
-import { convertEventDateIntoDay, convertEventDateIntoHour, subtractDates, isFavoriteOption, capitalizeFirstLetter } from '../utils.js';
-import { DESTINATIONS } from '../mock/const';
-import { OFFERS } from '../mock/offers.js';
+import {
+  convertEventDateIntoDay, convertEventDateIntoHour,
+  subtractDates, isFavoriteOption, capitalizeFirstLetter
+} from '../utils.js';
 import AbstractView from '../framework/view/abstract-view';
 
-const createOffersListTemplate = (offers) => {
-  const offersTemplate = offers.reduce((result, offer) => {
-    const offerInfo = OFFERS.find((item) => item.id === offer);
-    return result.concat(
-      `<li class="event__offer">
-      <span class="event__offer-title">${offerInfo.title}</span>
-      &plus;&euro;&nbsp;
-      <span class="event__offer-price">${offerInfo.price}</span>
-    </li>\n`);
-  }, '');
+const createOffersListTemplate = (eventType, eventOffers, allOffers) => {
+  const allOffersForType = allOffers.find((item) => item.type === eventType).offers;
+  const selectedOffers = eventOffers.map((offer) => allOffersForType.find((item) => item.id === offer));
 
   return `<ul class="event__selected-offers">
-              ${offersTemplate}
+            ${selectedOffers.map((offer) =>
+    `<li class="event__offer">
+                <span class="event__offer-title">${offer.title}</span>
+                &plus;&euro;&nbsp;
+                <span class="event__offer-price">${offer.price}</span>
+            </li>`).join('\n')}
           </ul>`;
 };
 
 
-const createEventTemplate = ({ basePrice, destination, startDate, endDate, isFavorite, offers, type }) => {
-  const name = DESTINATIONS.find((item) => (item.id === destination)).name;
+const createEventTemplate = ({ basePrice, destination, startDate, endDate, isFavorite, offers, type },
+  allOffers, allDestinations) => {
+  const name = allDestinations.find((item) => (item.id === destination)).name;
 
   return `<li class="trip-events__item">
     <div class="event">
@@ -41,7 +41,7 @@ const createEventTemplate = ({ basePrice, destination, startDate, endDate, isFav
       &euro;&nbsp;<span class="event__price">${basePrice}</span>
     </p>
     <h4 class="visually-hidden">Offers:</h4>
-    ${offers ? createOffersListTemplate(offers) : ''}
+    ${offers ? createOffersListTemplate(type, offers, allOffers) : ''}
     <button class="event__favorite-btn ${isFavoriteOption(isFavorite)}" type="button">
       <span class="visually-hidden">Add to favorite</span>
       <svg class="event__favorite-icon" width="28" height="28" viewBox="0 0 28 28">
@@ -57,14 +57,17 @@ const createEventTemplate = ({ basePrice, destination, startDate, endDate, isFav
 
 export default class EventView extends AbstractView {
   #event;
-
-  constructor(event) {
+  #allOffers;
+  #allDestinations;
+  constructor(event, allOffers, allDestinations) {
     super();
     this.#event = event;
+    this.#allOffers = allOffers;
+    this.#allDestinations = allDestinations;
   }
 
   get template() {
-    return createEventTemplate(this.#event);
+    return createEventTemplate(this.#event, this.#allOffers, this.#allDestinations);
   }
 
   setRollUpHandler = (callback) => {

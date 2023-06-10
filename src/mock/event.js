@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid';
 import { getRandomInteger, generateDates } from '../utils';
-import { TYPES, DESTINATIONS, PRICE } from './const';
+import { TYPES, DESTINATIONS, PRICE } from '../const';
 import { OFFERS } from './offers';
 
 const generateType = () => TYPES[getRandomInteger(0, TYPES.length - 1)];
