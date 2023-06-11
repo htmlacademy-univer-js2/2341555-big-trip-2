@@ -1,7 +1,7 @@
 import EventsModel from './model/events-model';
 import MenuView from './view/menu-view.js';
 import { render } from './framework/render';
-import RootPresenter from './presenter/root-presenter';
+import RootPresenter from './presenter/main-presenter';
 import TripInfoPresenter from './presenter/info-presenter.js';
 import NewEventButtonView from './view/new-event-btn-view';
 import FilterPresenter from './presenter/filter-presenter';
