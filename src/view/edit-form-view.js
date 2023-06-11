@@ -127,7 +127,8 @@ const createEditFormTemplate = ({ id, selectedDestinationName, type, basePrice, 
           ${createAvailableOptionsTemplate(offers, allOffersForType)}
           </div>
         </section>
-        <section class="event__section  event__section--destination">
+        <section class="event__section  event__section--destination
+        ${selectedDestinationData.description !== '' ? 'visually-hidden' : ''}">
           <h3 class="event__section-title  event__section-title--destination">Destination</h3>
           <p class="event__destination-description">
           ${selectedDestinationData.description}
