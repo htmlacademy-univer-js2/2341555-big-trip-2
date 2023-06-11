@@ -1,8 +1,8 @@
 import EventsModel from './model/events-model';
 import MenuView from './view/menu-view.js';
-import { render, RenderPosition } from './framework/render';
-import TripInfoView from './view/trip-info-view';
+import { render } from './framework/render';
 import RootPresenter from './presenter/root-presenter';
+import TripInfoPresenter from './presenter/info-presenter.js';
 import NewEventButtonView from './view/new-event-btn-view';
 import FilterPresenter from './presenter/filter-presenter';
 import FilterModel from './model/filter-model';
@@ -20,6 +20,7 @@ const contentElement = mainElement.querySelector('.trip-events');
 
 const filterModel = new FilterModel();
 const eventsModel = new EventsModel(new EventsApiService(END_POINT, AUTHORIZATION));
+const tripInfoPresenter = new TripInfoPresenter(tripMainElement, eventsModel);
 const rootPresenter = new RootPresenter(contentElement, eventsModel, filterModel);
 const filterPresenter = new FilterPresenter(filtersElement, filterModel, eventsModel);
 const newEventButtonComponent = new NewEventButtonView();
@@ -44,4 +45,4 @@ eventsModel.init()
     newEventButtonComponent.setClickHandler(openNewEventFormHandler);
   });
 render(new MenuView(), navigationElement);
-render(new TripInfoView(), tripMainElement, RenderPosition.AFTERBEGIN);
+tripInfoPresenter.init();

@@ -1,5 +1,6 @@
 import Observable from '../framework/observable';
 import { UPDATE_TYPES } from '../const';
+import dayjs from 'dayjs';
 
 export default class EventsModel extends Observable {
   #eventsApiService = null;
@@ -39,13 +40,14 @@ export default class EventsModel extends Observable {
   };
 
   updateEvent = async (updateType, update) => {
+    // debugger
     const index = this.#events.findIndex((event) => event.id === update.id);
 
     if (index === -1) {
       throw new Error('Can\'t update unexisting point');
     }
     try {
-      const response = await this.#eventsApiService.updatePoint(update);
+      const response = await this.#eventsApiService.updateEvent(update);
       const updated = this.#adaptToClient(response);
 
       this._notify(updateType, update);
@@ -60,16 +62,21 @@ export default class EventsModel extends Observable {
     }
   };
 
-  addEvent = (updateType, update) => {
-    this.#events = [
-      update,
-      ...this.#events,
-    ];
-
-    this._notify(updateType, update);
+  addEvent = async (updateType, update) => {
+    try {
+      const response = await this.#eventsApiService.addEvent(update);
+      const newEvent = this.#adaptToClient(response);
+      this.#events = [
+        newEvent,
+        ...this.#events,
+      ];
+      this._notify(updateType, update);
+    } catch (err) {
+      throw new Error('Can\'t add event');
+    }
   };
 
-  deleteEvent = (updateType, update) => {
+  deleteEvent = async (updateType, update) => {
     const index = this.#events.findIndex((event) => event.id === update.id);
 
     if (index === -1) {
@@ -82,14 +89,24 @@ export default class EventsModel extends Observable {
     ];
 
     this._notify(updateType);
+    try {
+      await this.#eventsApiService.deleteEvent(update);
+      this.#events = [
+        ...this.#events.slice(0, index),
+        ...this.#events.slice(index + 1),
+      ];
+      this._notify(updateType);
+    } catch (err) {
+      throw new Error('Can\'t delete event');
+    }
   };
 
   #adaptToClient = (event) => {
     const adapted = {
       ...event,
       basePrice: event['base_price'],
-      startDate: event['date_from'],
-      endDate: event['date_to'],
+      startDate: dayjs(event['date_from']),
+      endDate: dayjs(event['date_to']),
       isFavorite: event['is_favorite'],
     };
 
