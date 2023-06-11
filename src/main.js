@@ -8,7 +8,7 @@ import FilterPresenter from './presenter/filter-presenter';
 import FilterModel from './model/filter-model';
 import EventsApiService from './events-api-service';
 
-const AUTHORIZATION = 'Basic by2t8unK3gCMhlK';
+const AUTHORIZATION = 'Basic by2t8znK3gCMhlK';
 const END_POINT = 'https://18.ecmascript.pages.academy/big-trip';
 
 const headerElement = document.querySelector('.page-header');
