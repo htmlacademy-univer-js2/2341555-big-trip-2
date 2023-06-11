@@ -8,19 +8,6 @@ const PRICE = {
   MIN: 100,
   MAX: 600
 };
-const TYPES = ['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-in', 'sightseeing', 'restaurant'];
-const OFFER_TITLES = [
-  'Add breakfast',
-  'Add luggage',
-  'Add late check-out',
-  'Room with a beautiful view',
-  'Order a taxi',
-  'Switch to comfort',
-  'Switch to business',
-  'Rent a car',
-  'Upgrade to business class',
-  'Upgrade to Space+ Seat',
-];
 const DESTINATIONS = [
   {
     id: 1,
@@ -84,23 +71,27 @@ const UPDATE_TYPES = {
 
 const NEW_POINT = {
   basePrice: 0,
-  dateFrom: dayjs(),
-  dateTo: dayjs(),
+  startDate: dayjs(),
+  endDate: dayjs(),
   destination: 1,
   isFavorite: false,
   offers: [],
   type: 'taxi',
 };
 
+const TIME_LIMIT = {
+  LOWER_LIMIT: 350,
+  UPPER_LIMIT: 1000,
+};
+
 export {
   TIME,
   PRICE,
-  TYPES,
-  OFFER_TITLES,
   DESTINATIONS,
   FILTER_TYPES,
   SORT_TYPES,
   USER_ACTIONS,
   UPDATE_TYPES,
-  NEW_POINT
+  NEW_POINT,
+  TIME_LIMIT
 };

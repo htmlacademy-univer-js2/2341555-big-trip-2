@@ -84,15 +84,15 @@ export default class EventView extends AbstractView {
   }
 
   setFavoriteHandler = (callback) => {
-    this._callback.favoriteClick = callback;
+    this._callback.favorite = callback;
     this.element.querySelector('.event__favorite-btn').addEventListener(
       'click',
       this.#favoriteClickHandler
     );
   };
 
-  #favoriteClickHandler = (evt) => {
-    evt.preventDefault();
-    this._callback.favoriteClick();
+  #favoriteClickHandler = (e) => {
+    e.preventDefault();
+    this._callback.favorite();
   };
 }
