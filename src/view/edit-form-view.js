@@ -156,6 +156,10 @@ export default class EditFormView extends AbstractStatefulView {
     this.#setStopDatepicker();
   }
 
+  get template() {
+    return createEditFormTemplate(this._state, this.#allOffers, this.#allDestinations);
+  }
+
   static parseEvent = (event, allOffers, allDestinations) => ({
     ...event,
     selectedDestinationName: allDestinations.find((item) => (item.id === event.destination)).name,
@@ -177,10 +181,6 @@ export default class EditFormView extends AbstractStatefulView {
     delete event.isDeleting;
     return event;
   };
-
-  get template() {
-    return createEditFormTemplate(this._state, this.#allOffers, this.#allDestinations);
-  }
 
   removeElement = () => {
     super.removeElement();
